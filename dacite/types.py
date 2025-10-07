@@ -1,5 +1,5 @@
 from dataclasses import InitVar, is_dataclass
-from typing import Type, Any, Optional, Union, Collection, TypeVar, Mapping, Tuple, cast as typing_cast
+from typing import Type, Any, Optional, Union, Collection, TypeVar, Mapping, Tuple, TypeAliasType, cast as typing_cast
 
 try:
     from typing import get_origin  # type: ignore
@@ -135,6 +135,11 @@ def is_generic_dataclass(type_: Type) -> bool:
     return is_dataclass(get_origin(type_))
 
 
+@cache
+def is_type_alias(type_: Type) -> bool:
+    return isinstance(type_, TypeAliasType)
+
+
 def is_instance(value: Any, type_: Type) -> bool:
     try:
         # As described in PEP 484 - section: "The numeric tower"
@@ -178,4 +183,6 @@ def is_instance(value: Any, type_: Type) -> bool:
         return is_subclass(value, extract_generic(type_)[0])
     if is_generic_dataclass(type_):
         return isinstance(value, get_origin(type_))  # type: ignore[arg-type]
+    if is_type_alias(type_):
+        return is_instance(value, type_.__value__)
     return False
